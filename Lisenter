@@ -1,0 +1,58 @@
+Lisent (слушатель)
+
+import os
+import time
+from deep_translator import GoogleTranslator
+import pyttsx3
+
+# Путь к общей папке
+SHARED_FOLDER_PATH = r"\\MSI\users" # Укажите путь к общей папке
+
+def translate_and_speak():
+    """Функция для перевода и озвучки текста."""
+    engine = pyttsx3.init()
+    
+    # Устанавливаем скорость речи
+    engine.setProperty('rate', 150)  # Скорость речи
+    
+    # Получаем список доступных голосов
+    voices = engine.getProperty('voices')
+    
+    # Выбираем голос (например, женский или мужской)
+    # Обычно voices[0] — мужской голос, voices[1] — женский (зависит от системы)
+    engine.setProperty('voice', voices[1].id)  # Выбираем второй голос (женский)
+    
+    last_modified_time = 0  # Время последнего изменения файла
+
+    while True:
+        input_file_path = os.path.join(SHARED_FOLDER_PATH, "recordings.txt")
+        
+        try:
+            # Проверяем, изменился ли файл
+            current_modified_time = os.path.getmtime(input_file_path)
+            if current_modified_time != last_modified_time:
+                last_modified_time = current_modified_time
+                
+                # Читаем текст из файла
+                with open(input_file_path, "r", encoding="utf-8") as file:
+                    text = file.read().strip()
+                
+                if text:
+                    print(f"Прочитано из файла: {text}")
+                    
+                    # Переводим текст
+                    translated_text = GoogleTranslator(source='auto', target='en').translate(text)
+                    print(f"Перевод: {translated_text}")
+                    
+                    # Озвучиваем перевод
+                    engine.say(translated_text)
+                    engine.runAndWait()
+        except FileNotFoundError:
+            print(f"Файл не найден: {input_file_path}")
+        except Exception as e:
+            print(f"Ошибка: {str(e)}")
+        
+        time.sleep(0.1)  # Проверяем файл каждую секунду
+
+if __name__ == "__main__":
+    translate_and_speak()
